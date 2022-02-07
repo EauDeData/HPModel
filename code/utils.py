@@ -6,6 +6,43 @@ import pandas as pd
 import streetview
 import os
 import multiprocessing as mp
+from bs4 import BeautifulSoup
+import requests as r
+import re
+
+
+def scrap_tables():
+
+    all_links = []
+
+    for i in range (1, 185):
+        soup = BeautifulSoup(r.get(f'https://harassmap.org/en/reports?page={i}').text)
+        links = [[y for y in str(x).split('\n') if 'data-href=' in y][0] for x in soup.find_all('', class_ = 'row-link')]
+        all_links.extend(links)
+        print(len(all_links), end = '\r')
+
+    clean_links = []
+    for link in all_links:
+        match = re.search(r'href=[\'"]?([^\'" >]+)', link)
+        clean_links.append(match.group(1))
+    open('links.txt', 'w').write('\n'.join(clean_links))
+
+    
+    rows = []
+    for n, url in enumerate(clean_links):
+        print(n, url, '\t', end = '\r')
+        page = BeautifulSoup(r.get(url).text)
+        caption = page.find('', class_ = 'read-more')
+        if not caption: caption = None
+        else: caption = caption.text.strip()
+        coords = page.find('', class_ = 'latlng')
+        if not coords: cords = None
+        else: coords= coords.text.strip()
+        categories = '|'.join([i.text.strip() for i in page.find_all('', class_ = 'category mb-1')] if i else None)
+        rows.append([url, coords, categories, caption])
+    open('data_harassment.tsv', 'w').write('\n'.join(['\t'.join(row) for row in rows]))
+    
+    return 1
 
 def download_split(dataframe, p, n_process):
     base = '../panoramics/'
