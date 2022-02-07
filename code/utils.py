@@ -27,7 +27,7 @@ def scrap_tables():
         clean_links.append(match.group(1))
     open('links.txt', 'w').write('\n'.join(clean_links))
 
-    
+
     rows = []
     for n, url in enumerate(clean_links):
         print(n, url, '\t', end = '\r')
@@ -40,7 +40,7 @@ def scrap_tables():
         else: coords= coords.text.strip()
         categories = '|'.join([i.text.strip() for i in page.find_all('', class_ = 'category mb-1')] if i else None)
         rows.append([url, coords, categories, caption])
-    open('data_harassment.tsv', 'w').write('\n'.join(['\t'.join(row) for row in rows]))
+    open('../data/data_harassment.tsv', 'w').write('\n'.join(['\t'.join(row) for row in rows]))
     
     return 1
 
