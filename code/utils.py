@@ -8,7 +8,7 @@ import os
 import multiprocessing as mp
 
 def download_split(dataframe, p, n_process):
-    base = './panoramics/'
+    base = '../panoramics/'
     n=1
     for num in range(p, len(dataframe), n_process):
         num = dataframe.index[num]
@@ -38,7 +38,7 @@ def download_split(dataframe, p, n_process):
         print(f'Working on {num} out of {len(dataframe)}\t', end = '\r')
 
 def download_tiles():
-    dataframe = pd.read_csv('data_harassment.tsv', delimiter = '\t', names = ['url', 'coords', 'categories', 'text'])
+    dataframe = pd.read_csv('../data/data_harassment.tsv', delimiter = '\t', names = ['url', 'coords', 'categories', 'text'])
     dataframe = dataframe[dataframe.coords!='( )']
 
     n = 16
