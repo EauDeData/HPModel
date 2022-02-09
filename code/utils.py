@@ -3,7 +3,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import streetview
+import math
+#import streetview
 from googletrans import Translator, constants
 import os
 import multiprocessing as mp
@@ -47,7 +48,7 @@ def scrap_tables():
 
 def parse_ftb(file):
     dataframe = pd.read_csv(file, na_values='nan', quotechar='"')
-    columns = ["the_geom", "description_negative", "description_positive", "description_translation", "gender", "location_latlng_lat", "location_latlng_lng", "spot_type"]
+    columns = ["description_negative", "description_positive", "description_translation", "location_latlng_lat", "location_latlng_lng", "spot_type"]
     dataframe = dataframe[columns]
     # Select only cases with a description
     dataframe = dataframe[~((dataframe.description_negative.isna()) & (dataframe.description_positive.isna()))]
@@ -61,8 +62,17 @@ def parse_ftb(file):
     dataframe["target"] = dataframe.spot_type.replace(encode)
     dataframe = dataframe.drop(["spot_type"], axis=1)
     # Create description: translate and remove non-text
-    #trans_pos = dataframe['description_positive'].dropna()[:10].apply(lambda x: translator.translate(x, dest='en').text)    
-    
+    #translator = Translator()
+    for index, row in dataframe.iterrows():
+        if isinstance(row["description_translation"], float):
+            if not isinstance(row["description_positive"], float):
+                dataframe.loc[index, "description_translation"] = row["description_positive"]
+                #row["description_translation"] = translator.translate(row["description_positive"])
+            elif not isinstance(row["description_negative"], float):
+                dataframe.loc[index, "description_translation"] = row["description_negative"]
+                #row["description_translation"] = translator.translate(row["description_negative"])
+    dataframe = dataframe.drop(["description_positive", "description_negative"], axis=1)
+    dataframe = dataframe.rename(columns = {"description_translation": "description"})
     return dataframe
 
 def download_split(dataframe, p, n_process):
@@ -128,4 +138,4 @@ def get_full_image(directory):
 if __name__ == "__main__":
     #plt.imshow(get_full_image('/home/adri/Desktop/projects/harassment/panoramics/3decec6dfa/1/'))
     #plt.show()
-    dataframe = parse_ftb("/home/gerard/Desktop/AI4SH/HPModel/data/csv-ftb/ftb_delhi_archive.csv")
+    dataframe = parse_ftb("/home/gerard/Desktop/AI4SH/HPModel/data/csv-ftb/ftb_lima_archive.csv")
