@@ -44,6 +44,10 @@ def scrap_tables():
     
     return 1
 
+def parse_ftb(file):
+    dataframe = pd.read_csv(file)
+    raise NotImplementedError 
+
 def download_split(dataframe, p, n_process):
     base = '../panoramics/'
     n=1
