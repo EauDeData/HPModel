@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import streetview
+from googletrans import Translator, constants
 import os
 import multiprocessing as mp
 from bs4 import BeautifulSoup
@@ -36,7 +37,7 @@ def scrap_tables():
         if not caption: caption = None
         else: caption = caption.text.strip()
         coords = page.find('', class_ = 'latlng')
-        if not coords: cords = None
+        if not coords: coords = None
         else: coords= coords.text.strip()
         categories = '|'.join([i.text.strip() for i in page.find_all('', class_ = 'category mb-1')] if i else None)
         rows.append([url, coords, categories, caption])
@@ -45,8 +46,24 @@ def scrap_tables():
     return 1
 
 def parse_ftb(file):
-    dataframe = pd.read_csv(file)
-    raise NotImplementedError 
+    dataframe = pd.read_csv(file, na_values='nan', quotechar='"')
+    columns = ["the_geom", "description_negative", "description_positive", "description_translation", "gender", "location_latlng_lat", "location_latlng_lng", "spot_type"]
+    dataframe = dataframe[columns]
+    # Select only cases with a description
+    dataframe = dataframe[~((dataframe.description_negative.isna()) & (dataframe.description_positive.isna()))]
+    # Select only cases where coords are known
+    dataframe = dataframe[~((dataframe.location_latlng_lat.isna()) & (dataframe.location_latlng_lng.isna()))]
+    # Create coord tuple (lat, lon)
+    dataframe["coords"] = list(zip(dataframe.location_latlng_lat, dataframe.location_latlng_lng))
+    dataframe = dataframe.drop(["location_latlng_lat", "location_latlng_lng"], axis=1)
+    # Create target {"good": 1, "bad": 0}
+    encode = {"good": 1, "bad": 0}
+    dataframe["target"] = dataframe.spot_type.replace(encode)
+    dataframe = dataframe.drop(["spot_type"], axis=1)
+    # Create description: translate and remove non-text
+    #trans_pos = dataframe['description_positive'].dropna()[:10].apply(lambda x: translator.translate(x, dest='en').text)    
+    
+    return dataframe
 
 def download_split(dataframe, p, n_process):
     base = '../panoramics/'
@@ -109,5 +126,6 @@ def get_full_image(directory):
     return np.vstack([np.hstack(x) for x in full_image]) #OMG this function is SICK
 
 if __name__ == "__main__":
-    plt.imshow(get_full_image('/home/adri/Desktop/projects/harassment/panoramics/3decec6dfa/1/'))
-    plt.show()
+    #plt.imshow(get_full_image('/home/adri/Desktop/projects/harassment/panoramics/3decec6dfa/1/'))
+    #plt.show()
+    dataframe = parse_ftb("/home/gerard/Desktop/AI4SH/HPModel/data/csv-ftb/ftb_delhi_archive.csv")
