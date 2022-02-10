@@ -75,7 +75,7 @@ def parse_ftb(file):
     dataframe = dataframe.rename(columns = {"description_translation": "description"})
     return dataframe
 
-"""
+
 def download_split(dataframe, p, n_process):
     base = '../panoramics/'
     n=1
@@ -119,7 +119,7 @@ def download_tiles():
     for n, p in enumerate(process_batch):
         p.join()
         print('Process', n, 'finished') 
-"""
+
 
 def download_split_ftb(dataframe, p, n_process):
     base = '../panoramics/'
