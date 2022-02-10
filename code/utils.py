@@ -82,8 +82,6 @@ def parse_ftb(files):
         dataframe = pd.concat([dataframe, tmp])
     dataframe.to_csv("../data/ftb_data_harassment.csv")
     
-
-"""
 def download_split(dataframe, p, n_process):
     base = '../panoramics/'
     n=1
@@ -127,7 +125,7 @@ def download_tiles():
     for n, p in enumerate(process_batch):
         p.join()
         print('Process', n, 'finished') 
-"""
+
 
 def download_split_ftb(dataframe, p, n_process):
     base = '../panoramics/'
