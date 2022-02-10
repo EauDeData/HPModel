@@ -46,7 +46,7 @@ def scrap_tables():
     
     return 1
 
-def parse_ftb(file):
+def parse_single_ftb(file):
     dataframe = pd.read_csv(file, na_values='nan', quotechar='"')
     columns = ["description_negative", "description_positive", "description_translation", "location_latlng_lat", "location_latlng_lng", "spot_type"]
     dataframe = dataframe[columns]
@@ -74,6 +74,14 @@ def parse_ftb(file):
     dataframe = dataframe.drop(["description_positive", "description_negative"], axis=1)
     dataframe = dataframe.rename(columns = {"description_translation": "description"})
     return dataframe
+
+def parse_ftb(files):
+    dataframe = pd.DataFrame([])
+    for file in files:
+        tmp = parse_single_ftb(file)
+        dataframe = pd.concat([dataframe, tmp])
+    dataframe.to_csv("../data/ftb_data_harassment.csv")
+    
 
 """
 def download_split(dataframe, p, n_process):
@@ -133,12 +141,12 @@ def download_split_ftb(dataframe, p, n_process):
         y = float(y)
         id_ = str(url).zfill(4)
         dir_ = base + id_
+        panoids = streetview.panoids(lat=x, lon=y)
+        if len(panoids) == 0: continue #moved this before so we don't have empty folders
         try:
             os.mkdir(dir_)
         except FileExistsError:
             continue
-        panoids = streetview.panoids(lat=x, lon=y)
-        if len(panoids) == 0: continue
         for i in range(1): #range(len(panoids)): TODO: We can change this and take the whole scenario
             newDir = dir_+'/'+str(i)
             try:
@@ -186,7 +194,8 @@ def get_full_image(directory):
 if __name__ == "__main__":
     #plt.imshow(get_full_image('/home/adri/Desktop/projects/harassment/panoramics/3decec6dfa/1/'))
     #plt.show()
-    #df_lima = parse_ftb("/home/gerard/Desktop/AI4SH/HPModel/data/csv-ftb/ftb_lima_archive.csv")
-    #df_kampala = parse_ftb("/home/gerard/Desktop/AI4SH/HPModel/data/csv-ftb/ftb_kampala_archive.csv")
-    #df_delhi = parse_ftb("/home/gerard/Desktop/AI4SH/HPModel/data/csv-ftb/ftb_delhi_archive.csv")
+    data_path = "/home/gerard/Desktop/AI4SH/HPModel/data/csv-ftb/"
+    names = ["ftb_lima_archive.csv", "ftb_kampala_archive.csv", "ftb_delhi_archive.csv"]
+    ftb_files = [data_path + name for name in names]
+    parse_ftb(ftb_files)
     download_tiles_ftb()
